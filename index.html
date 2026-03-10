@@ -1,0 +1,339 @@
+import { useState } from "react";
+
+const meadData = {
+  center: "G.H. Mead",
+  subtitle: "Symbolic Interactionism",
+  branches: [
+    {
+      id: "self",
+      label: "The Self",
+      color: "#E8A87C",
+      angle: 0,
+      children: [
+        { label: "Self is not innate — it develops socially" },
+        { label: "'I' — spontaneous, impulsive part of self" },
+        { label: "'Me' — socialised self; aware of others' expectations" },
+        { label: "Self emerges through social interaction" },
+        { label: "We see ourselves through others' eyes" },
+      ],
+    },
+    {
+      id: "mind",
+      label: "Mind & Language",
+      color: "#85C1E9",
+      angle: 72,
+      children: [
+        { label: "Mind arises from social experience" },
+        { label: "Language is key to developing thought" },
+        { label: "Symbols carry shared meanings" },
+        { label: "Inner conversation = 'thinking'" },
+        { label: "Humans interpret stimuli, not just react" },
+      ],
+    },
+    {
+      id: "society",
+      label: "Society",
+      color: "#82E0AA",
+      angle: 144,
+      children: [
+        { label: "Society = ongoing interaction between individuals" },
+        { label: "Shared symbols hold society together" },
+        { label: "Social order is negotiated, not fixed" },
+        { label: "Micro-level focus — face-to-face interactions" },
+        { label: "Links to labelling theory (Becker)" },
+      ],
+    },
+    {
+      id: "role",
+      label: "Role Taking",
+      color: "#C39BD3",
+      angle: 216,
+      children: [
+        { label: "Taking the role of the 'other'" },
+        { label: "Significant Others — close individuals (e.g. family)" },
+        { label: "Generalised Other — society's expectations as a whole" },
+        { label: "Children learn roles through play & games" },
+        { label: "Stage 1: Play — imitating specific roles" },
+        { label: "Stage 2: Game — understanding multiple roles simultaneously" },
+      ],
+    },
+    {
+      id: "critique",
+      label: "Evaluation",
+      color: "#F1948A",
+      angle: 288,
+      children: [
+        { label: "✓ Shows how identity is socially constructed" },
+        { label: "✓ Highlights agency and active meaning-making" },
+        { label: "✓ Influenced labelling theory & social constructionism" },
+        { label: "✗ Ignores macro structures (class, power, inequality)" },
+        { label: "✗ Neglects emotion and the unconscious (cf. Freud)" },
+        { label: "✗ Overly focused on consensus — ignores conflict" },
+      ],
+    },
+  ],
+};
+
+const RADIUS = 210;
+const CHILD_RADIUS = 105;
+
+function polarToXY(angleDeg, r) {
+  const rad = ((angleDeg - 90) * Math.PI) / 180;
+  return { x: Math.cos(rad) * r, y: Math.sin(rad) * r };
+}
+
+export default function MeadMindMap() {
+  const [active, setActive] = useState(null);
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#0f0f1a",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        padding: "32px 16px 48px",
+        fontFamily: "'Georgia', serif",
+      }}
+    >
+      {/* Header */}
+      <div style={{ textAlign: "center", marginBottom: 32 }}>
+        <div
+          style={{
+            fontSize: 11,
+            letterSpacing: 5,
+            color: "#888",
+            textTransform: "uppercase",
+            marginBottom: 6,
+          }}
+        >
+          A-Level Sociology
+        </div>
+        <h1
+          style={{
+            fontSize: 26,
+            color: "#f0ead6",
+            fontWeight: "normal",
+            margin: 0,
+            letterSpacing: 1,
+          }}
+        >
+          G.H. Mead — Mind Map
+        </h1>
+        <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
+          Click a branch to explore key concepts
+        </div>
+      </div>
+
+      {/* SVG Mind Map */}
+      <div style={{ width: "100%", maxWidth: 700, overflowX: "auto" }}>
+        <svg
+          viewBox="-350 -350 700 700"
+          style={{ width: "100%", maxHeight: 620 }}
+        >
+          {/* Branch lines */}
+          {meadData.branches.map((branch) => {
+            const pos = polarToXY(branch.angle, RADIUS);
+            return (
+              <line
+                key={branch.id}
+                x1={0}
+                y1={0}
+                x2={pos.x}
+                y2={pos.y}
+                stroke={branch.color}
+                strokeWidth={active === branch.id ? 3 : 1.5}
+                strokeOpacity={
+                  active && active !== branch.id ? 0.2 : 0.7
+                }
+                style={{ transition: "all 0.3s" }}
+              />
+            );
+          })}
+
+          {/* Branch nodes */}
+          {meadData.branches.map((branch) => {
+            const pos = polarToXY(branch.angle, RADIUS);
+            const isActive = active === branch.id;
+            return (
+              <g
+                key={branch.id}
+                transform={`translate(${pos.x},${pos.y})`}
+                style={{ cursor: "pointer" }}
+                onClick={() => setActive(isActive ? null : branch.id)}
+              >
+                <circle
+                  r={isActive ? 46 : 40}
+                  fill={branch.color}
+                  fillOpacity={isActive ? 0.95 : 0.18}
+                  stroke={branch.color}
+                  strokeWidth={isActive ? 2.5 : 1.5}
+                  strokeOpacity={
+                    active && !isActive ? 0.25 : 1
+                  }
+                  style={{ transition: "all 0.3s" }}
+                />
+                <text
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fill={isActive ? "#0f0f1a" : branch.color}
+                  fontSize={isActive ? 9.5 : 9}
+                  fontWeight="bold"
+                  style={{
+                    transition: "all 0.3s",
+                    userSelect: "none",
+                    pointerEvents: "none",
+                  }}
+                >
+                  {branch.label.split(" ").map((word, i, arr) => (
+                    <tspan
+                      key={i}
+                      x={0}
+                      dy={i === 0 ? -(arr.length - 1) * 6 : 12}
+                    >
+                      {word}
+                    </tspan>
+                  ))}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Center node */}
+          <g>
+            <circle
+              r={58}
+              fill="#f0ead6"
+              fillOpacity={0.97}
+              stroke="#f0ead6"
+              strokeWidth={1}
+            />
+            <text
+              textAnchor="middle"
+              dy={-8}
+              fill="#0f0f1a"
+              fontSize={13}
+              fontWeight="bold"
+              style={{ userSelect: "none" }}
+            >
+              G.H. Mead
+            </text>
+            <text
+              textAnchor="middle"
+              dy={8}
+              fill="#444"
+              fontSize={7.5}
+              style={{ userSelect: "none" }}
+            >
+              Symbolic
+            </text>
+            <text
+              textAnchor="middle"
+              dy={18}
+              fill="#444"
+              fontSize={7.5}
+              style={{ userSelect: "none" }}
+            >
+              Interactionism
+            </text>
+          </g>
+        </svg>
+      </div>
+
+      {/* Detail Panel */}
+      <div style={{ width: "100%", maxWidth: 640, marginTop: 16 }}>
+        {active ? (
+          (() => {
+            const branch = meadData.branches.find((b) => b.id === active);
+            return (
+              <div
+                style={{
+                  background: "#1a1a2e",
+                  border: `1px solid ${branch.color}44`,
+                  borderRadius: 12,
+                  padding: "24px 28px",
+                  animation: "fadeIn 0.25s ease",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginBottom: 16,
+                    gap: 12,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: "50%",
+                      background: branch.color,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <h2
+                    style={{
+                      margin: 0,
+                      color: branch.color,
+                      fontSize: 18,
+                      fontWeight: "normal",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    {branch.label}
+                  </h2>
+                </div>
+                <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                  {branch.children.map((child, i) => (
+                    <li
+                      key={i}
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 10,
+                        padding: "7px 0",
+                        borderBottom:
+                          i < branch.children.length - 1
+                            ? "1px solid #ffffff0a"
+                            : "none",
+                        color: "#d0ccc4",
+                        fontSize: 14,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      <span style={{ color: branch.color, marginTop: 2 }}>
+                        →
+                      </span>
+                      {child.label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })()
+        ) : (
+          <div
+            style={{
+              textAlign: "center",
+              color: "#444",
+              fontSize: 13,
+              padding: "20px 0",
+            }}
+          >
+            Select a branch above to see detailed notes
+          </div>
+        )}
+      </div>
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
